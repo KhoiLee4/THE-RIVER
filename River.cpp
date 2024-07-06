@@ -1,3 +1,13 @@
+
+//                                 ----------THE RIVER-----------                                    //
+// San pham duoc thuc hien boi nhom 3 lop CNTT K63 UTC2                                              //
+// Nhom truong: Le Dinh Khoi        MSSV:6351071035                                                  //                                                                                            
+// Thanh vien: Tran Phuong Anh      MSSV:6351071002                                                  //                                                                                                  
+// Thanh vien: Nguyen Van Dung      MSSV:6351071020                                                  //                                                                                                 
+// Thanh vien: Do Van Thanh Duoc    MSSV:6351071021                                                  //   
+//                                                                                                   // 
+//                             !!! XEM THEM O PHAN KHAI BAO HAM DE RO HON !!!                        //
+
 #include<stdio.h>
 #include<windows.h>
 #include<conio.h>
@@ -5,6 +15,44 @@
 #include<time.h>
 #include<stdlib.h>
 
+typedef struct _ToaDo{
+	int x;
+	int y;
+}ToaDo;
+
+typedef struct _ToaDoVatThe{
+	ToaDo VT;
+	int kt;
+}ToaDoVT;
+
+typedef struct _Date{
+    int ngay;
+    int thang;
+    int nam;
+}Date;
+
+typedef struct _Account{
+    char name[50];
+    char pass[50];
+    Date NgaySinh;
+    int tuoi;
+}ACC;
+
+typedef struct _NhanVat{
+    char username[50];
+    char rank[50];
+    time_t t1;
+    time_t t2;
+}NhanVat;
+
+//Khai bao bien
+ACC account;
+NhanVat ghiNV, xuatNV[100];
+ToaDo nv;
+ToaDoVT map[1610], thorns[500], ladder[50], block[50];	//Lưu toa độ map (28 * 115 / 2 = 1610)
+ToaDo key[10], door[10], thornsBack[10], ladderGo[10], ladderCome[10], land[10], button[10];
+int HP = 5, demMap = 0, demKey = 0, demThorns = 0, GQL = 0, demLadder = 0, ladderGoCome = 0, demLand = 0, hD = 0, hR = 0, demButton = 0, demBlock = 0, gameScreen = 1; bool checkDoor = false;
+int MauNenNoi = 0, MauChuNoi = 1, MauNenNhat = 0, MauChuNhat = 14;
 
 //Ham thay đoi mau
 void DoiMau(int MauNen, int MauChu){
@@ -12,6 +60,7 @@ void DoiMau(int MauNen, int MauChu){
     int Mau = MauNen * 16 + MauChu; //Cong thuc tao mau
     SetConsoleTextAttribute(hStdout, Mau); //Ham thay đoi mau
 }
+
 //Ham di chuyển con tro
 void GoTo(SHORT X, SHORT Y){
 	HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE); //Đau ra
@@ -20,6 +69,7 @@ void GoTo(SHORT X, SHORT Y){
     ToaDo.Y = Y;
 	SetConsoleCursorPosition(hStdout, ToaDo); //Ham di chuyen
 }
+
 //Ham an con tro
 void ShowCur(bool CursorVisibility){
 	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -28,12 +78,14 @@ void ShowCur(bool CursorVisibility){
     ConCurInf.bVisible = CursorVisibility;
     SetConsoleCursorInfo(handle, &ConCurInf);
 }
+
 //Ham lay toa đo x cua con tro
 int where_x(){
 	CONSOLE_SCREEN_BUFFER_INFO coninfo; 
 	GetConsoleScreenBufferInfo (GetStdHandle(STD_OUTPUT_HANDLE), &coninfo); //Truyen vao đau ra va toa đo 
 	return coninfo.dwCursorPosition.X; //Toa đo x cua con tro
 }
+
 //Ham lay toa đo y cua con tro
 int where_y(){
 	CONSOLE_SCREEN_BUFFER_INFO coninfo;
@@ -43,14 +95,14 @@ int where_y(){
 
 //In nhan vat
 void NV(int x, int y){
-	DoiMau(0,9);
+	DoiMau(MauNenNoi, MauChuNoi);
 	//Chan
 	GoTo(x, y);
-	printf("%c",19);
+	printf("%c",206);
 	//Đau
 	GoTo(x, y-1);
 	printf("%c",64);
-	DoiMau(0,11);
+	DoiMau(MauNenNhat, MauChuNhat);
 }
 //Xoa nhan vat
 void XNV(int x, int y){
@@ -63,12 +115,657 @@ void XNV(int x, int y){
 }
 //Ghi toa đo map
 void GhiTD(){
-	Map[DM].VT.x=where_x()-1;
-    Map[DM].VT.y=where_y();
-    Map[DM].kt=1;
-    DM++;
+	map[demMap].VT.x=where_x()-1;
+    map[demMap].VT.y=where_y();
+    map[demMap].kt=1;
+    demMap++;
 }
 
+
+//Khai bao ham
+//XU LY CAC THAO TAC VA DOI TUONG TRONG GAME//
+int DieuKhien(int &x, int &y);
+void Phai(int &x, int &y);
+void Trai(int &x, int &y);
+void Nhay(int &x, int &y);
+int KTNgang(int x, int y);
+int KTDoc(int x, int y);
+void KTDC(int &x, int &y);
+void RoiTD(int &x, int &y);
+void KTTN(int &x, int &y);
+void KTChiaKhoa(int x, int y);
+void KTCua(int &x, int &y);
+void KTGai(int &x, int &y);
+void KTKhoiDat(int &x, int &y);
+void KTThangLeo(int &x, int &y);
+void KTCongTac(int x, int y);
+void Reset();
+void TChiaKhoa(int x, int y, int demMap);
+void TCua(int x, int y);
+void TGai(int xD, int yD, int sl, int xQL, int yQL);
+void TKhoiDat(int x, int y);
+void TThangLeo(int xD, int yD, int KThuoc, int h);
+void TCongTac(int xD, int yD, int xCT, int yCT);
+
+//INTRO
+void Intro();
+void HIntro();
+void AIntro();
+void HChuT();
+void HChuH();
+void HChuE();
+void HChuR();
+void HChuI();
+void HChuV();
+void HChuE2();
+void HChuR2();
+
+//OUTRO
+void Outro();
+void Ket();
+void HOutro();
+
+//XU LY HIEN THI GIAO DIEN//
+void Khung(int gtt, int gtp, int gdt, int gdp, int cn, int cd);
+int DKy_DNhap();
+void DC_Chon_DKy_DNhap(int chon, int choncu);
+void Menu();
+void DC_Chon_Menu(int chon, int choncu);
+void Map_1(int canh);
+void Map_2(int canh);
+void Map_3(int canh);
+// void Map_4(int canh);
+void Man_1();
+void Man_2();
+void Man_3();
+// void Man_4();
+void HienThi();
+void end();
+
+//XU LY THAO TAC VOI TAI KHOANG//
+void TaoTK();
+void DangNhapTK();
+bool CheckPass(char a[]);
+
+int CheckDate();
+void TinhTuoi();
+void GhiLuotChoi();
+void GhiThoiGian(double KL);
+void xuatFileKiLuc();
+void DoiCho(NhanVat &a, NhanVat &b);
+
+
+// Noi chay chuong trinh (MAIN)
+int main(){
+	ShowCur(false);	//An con tro
+	// SetConsoleOutputCP(CP_UTF8);
+    Intro();
+	DoiMau(MauNenNhat, MauChuNhat);
+	DKy_DNhap();
+    system("cls");
+    return 0;
+}
+
+
+//KI LUC//
+//Ham hien thi dang ky, dang nhap
+int DKy_DNhap(){
+    system("cls");
+    //Khoi tao bien chon phuong an va bien chon phuong an truoc đo
+    int  chon = 1, choncu = 0;
+    //Noi dung
+    DoiMau(MauNenNoi, MauChuNoi);
+    GoTo(45,12);
+    printf("%c %c %c %c THE RIVER %c %c %c %c",3,4,5,6,6,5,4,3);
+	DoiMau(MauNenNhat, MauChuNhat);
+    GoTo(54,14);
+    printf("DANG KY");
+    GoTo(53,15);
+    printf("DANG NHAP");
+    GoTo(1,27);
+    printf("ESC: thoat game!");
+	//Di chuyen con tro
+    while(1){
+    	DC_Chon_DKy_DNhap(chon,choncu); //Hien vi tri con tro đe chon
+		char lenh;
+		if(kbhit()){ //Kiem tra bo đem ban phim
+			lenh=getch();
+			if(lenh==13)
+		 		break; //Dung vong lap (chon phuong an)
+ 			if(lenh==80){
+				if(chon<2){
+					chon++;
+					choncu=chon-1;
+					DC_Chon_DKy_DNhap(chon,choncu);
+				}
+			}
+			if(lenh==72){
+				if(chon>1){
+					chon--; 
+					choncu=chon+1;	
+					DC_Chon_DKy_DNhap(chon,choncu);
+				}
+			}
+			if(lenh==27)	//Thoat game
+				return 0;
+		}
+	}
+    //Dang ky
+    if(chon==1){
+		TaoTK();
+	}
+	//Dang nhap
+	if(chon==2){
+		DangNhapTK();
+	}
+}
+//Ham hien thi con tro tai phuong an chon
+void DC_Chon_DKy_DNhap(int chon, int choncu){
+    //1=> 2->1
+    if(chon==1){
+		if(choncu==2){
+			GoTo(51,15);
+			DoiMau(MauNenNhat, MauChuNhat);
+    		printf("  DANG NHAP");
+		}
+		GoTo(52,14);
+		DoiMau(MauNenNoi, MauChuNoi);
+		printf("%c DANG KY",16);
+		DoiMau(MauNenNhat, MauChuNhat);
+	}
+    //2=> 1->2 hoặc 3->2
+	if(chon==2){
+		if(choncu==1){
+			GoTo(52,14);
+			DoiMau(MauNenNhat, MauChuNhat);
+    		printf("  DANG KY");
+		}
+		GoTo(51,15);
+		DoiMau(MauNenNoi, MauChuNoi);
+		printf("%c DANG NHAP",16);
+		DoiMau(MauNenNhat, MauChuNhat);
+	}
+}
+//Ham tao tai khoan
+void TaoTK(){
+	system("cls");
+	GoTo(44,5);
+	DoiMau(MauNenNoi, MauChuNoi);
+    printf("-----DANG KI TAI KHOAN-----\n\n");
+	DoiMau(MauNenNhat, MauChuNhat);
+    printf("Tai Khoan: ");
+    gets(account.name);
+	Sleep(1000);
+
+    nhapMatKhau:
+	system("cls");
+	GoTo(44,5);
+	DoiMau(MauNenNoi, MauChuNoi);
+    printf("-----DANG KI TAI KHOAN-----\n\n");
+	DoiMau(MauNenNhat, MauChuNhat);
+    printf("Mat Khau: ");
+    gets(account.pass); 
+    if(CheckPass(account.pass)){
+		GoTo(45,14);
+        printf("Nhap mat khau thanh cong!");
+		Sleep(2000);
+		goto nhapNgaySinh;
+    }
+    else{
+		GoTo(30,14);
+        printf("Mat khau phai co ki tu dat biet, chu thuong, chu hoa!!!");
+		GoTo(43,15);
+        printf("Vui long nhap lai mat khau !");
+		Sleep(2000);
+        goto nhapMatKhau;
+    }
+
+    nhapNgaySinh:
+	system("cls");
+	GoTo(44,5);
+	DoiMau(MauNenNoi, MauChuNoi);
+    printf("-----DANG KI TAI KHOAN-----\n\n");
+	DoiMau(MauNenNhat, MauChuNhat);
+    printf("Ngay sinh(xx/yy/zzzz): ");
+    scanf("%d/%d/%d",&account.NgaySinh.ngay,&account.NgaySinh.thang,&account.NgaySinh.nam);
+    getchar();
+    if(CheckDate()){
+        TinhTuoi();
+        if(account.tuoi<13){
+			GoTo(45,14);
+        	printf("Do tuoi khong duoc phep choi game nay!!!");
+			Sleep(2000);
+			DKy_DNhap();
+        }
+        char tenFile[50];
+        strcpy(tenFile,account.name);
+        strcat(tenFile,".txt"); //Tao file theo ten tai khoan
+        FILE* file;
+        file=fopen(tenFile,"w");
+        if(file==NULL){
+			GoTo(29,14);
+            printf("Co loi Khong the tao hoac mo duoc file luu tai khoan mat khau!!!");
+			Sleep(2000);
+            DKy_DNhap();
+        }
+        fprintf(file,"%s",account.pass);
+        fclose(file);
+		DKy_DNhap();
+    }
+    else{
+		GoTo(45,14);
+        printf("Ngay sinh khong hop le !!!");
+		Sleep(2000);
+        goto nhapNgaySinh;
+    }
+}
+// Ham dang nhap tai khoan
+void DangNhapTK(){
+    Nhap:
+	system("cls");
+	GoTo(42,10);
+	DoiMau(MauNenNoi, MauChuNoi);
+    printf("-----DANG NHAP TAI KHOAN-----\n");
+	DoiMau(MauNenNhat, MauChuNhat);
+    printf("Tai Khoan: ");
+    gets(account.name);
+    FILE* file;
+    char tenFile[50];
+    strcpy(tenFile,account.name);
+    strcat(tenFile,".txt");
+    file=fopen(tenFile,"r");
+    if(file==NULL){
+		GoTo(44,14);
+        printf("Tai Khoan Khong Ton Tai !!!");
+		Sleep(1000);
+        DKy_DNhap();
+    }
+    char MatKhau[50];
+    fscanf(file,"%s",&MatKhau);
+    printf("\nMat Khau: ");
+    gets(account.pass);
+    if(strcmp(account.pass,MatKhau)==0){
+		GoTo(46,14);
+        printf("DANG NHAP THANH CONG!!");
+		Sleep(1000);
+		Menu();
+    }
+    else{
+		GoTo(47,14);
+        printf("Mat khau khong dung!!!");
+		Sleep(1000);
+        goto Nhap;
+    }
+}
+// Ham kiem tra chuoi co ki tu dat biet, chu thuong, chu hoa
+bool CheckPass(char a[]){
+    size_t len=strlen(a);
+    for(int i=0; i<len; i++){
+        //Kiem tra ki tu dac biet
+        if((a[i]>=33 && a[i]<=47) || (a[i]>=58 && a[i]<=64) || (a[i]>=91 && a[i]<=96)){
+            for(int j=0; j<len; j++){
+                //Kiem tra chu thuong
+                if(a[j]>=97 && a[j]<=122){
+                    for(int z=0; z<len; z++){
+                        //Kiem tra chu hoa
+                        if((a[z]>=65 && a[z]<=90)){
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+//Ham kiem tra ngay thang nam
+int CheckDate(){
+    if(account.NgaySinh.ngay>31|| account.NgaySinh.ngay<=0 || account.NgaySinh.nam<=0||account.NgaySinh.thang>12|| account.NgaySinh.thang<=0){
+        return 0;
+    }
+    if(account.NgaySinh.thang==1 || account.NgaySinh.thang ==3|| account.NgaySinh.thang==5|| account.NgaySinh.thang==7|| account.NgaySinh.thang==8|| account.NgaySinh.thang==10|| account.NgaySinh.thang==12){
+        if(account.NgaySinh.ngay<=31){
+            return 1;
+        }
+		else return 0;
+    }
+	else if(account.NgaySinh.thang==2){
+        if((account.NgaySinh.nam%400==0 || (account.NgaySinh.nam%4==0 && account.NgaySinh.nam%50==0))&& account.NgaySinh.ngay<=28){
+            return 1;
+        }
+		else{
+            return 0;
+        }
+    }
+    else {
+        if(account.NgaySinh.ngay<=30){
+            return 1;
+        }
+    }
+}
+//Ham tinh tuoi 
+void TinhTuoi(){
+    time_t TTIME=time(0);
+    tm* NOW=localtime(&TTIME);
+    account.tuoi=NOW->tm_year+1900-account.NgaySinh.nam;
+}
+//Ham ghi luot choi
+void GhiLuotChoi(){
+	system("cls");
+	GoTo(46,5);
+	DoiMau(MauNenNoi, MauChuNoi);
+    printf("-----TAO LUOT CHOI-----\n\n");
+	DoiMau(MauNenNhat, MauChuNhat);
+    FILE* file;
+    char tenFile[50];
+    strcpy(tenFile,account.name);
+    strcat(tenFile,".txt");
+    file=fopen(tenFile,"a"); //strcat de noi ten thanh .txt
+    if(file==NULL){
+		GoTo(41,14);
+        printf("Khong the tao luot choi !!!");
+        Sleep(2000);
+		Menu();
+    }
+    printf("Ten nhan vat: ");
+    gets(ghiNV.username);
+    fprintf(file,"\n%s",ghiNV.username);
+    fclose(file);
+}
+//Ham ghi thoi gian ki luc
+void GhiThoiGian(double KL){
+	FILE* file;
+    char tenFile[50];
+    strcpy(tenFile,account.name);
+    strcat(tenFile,".txt");
+    file=fopen(tenFile,"a");
+	fprintf(file,"\n%f",KL);
+	fclose(file);
+}
+// Ham xem ky luc
+void xuatFileKiLuc(){
+	system("cls");
+    FILE* file;
+    char pass[50];
+    char tenFile[50];
+    strcpy(tenFile,account.name);
+    strcat(tenFile,".txt");
+    file=fopen(tenFile,"r");
+    if(file==NULL){
+		GoTo(42,14);
+        printf("Hien tai khong the xem ki luc !!!");
+		Sleep(2000);
+        Menu();
+    }
+    fscanf(file,"%s",pass);
+    int n=-1;
+    do{
+        n++;
+        fscanf(file,"%30s",xuatNV[n].username);
+        fscanf(file,"%30s", xuatNV[n].rank);
+    }while(atof(xuatNV[n].rank)!=0);
+    n--;
+	system("cls");
+	GoTo(54,5);
+	DoiMau(MauNenNoi, MauChuNoi);
+    printf("KI LUC\n");
+	DoiMau(MauNenNhat, MauChuNhat);
+    for(int i=0; i<=n-1; i++){
+        int max=i;
+        for (int j=i+1; j<=n; j++){
+            if(atof(xuatNV[j].rank)<atof(xuatNV[max].rank))
+                max=j;
+        }
+        DoiCho(xuatNV[i], xuatNV[max]);
+    }
+    for(int i=0; i<=9; i++){
+        printf("%d\t\t%30s\t\t%.3f\n",i+1, xuatNV[i].username, atof(xuatNV[i].rank));
+    }
+	GoTo(1,27);
+	printf("ENTER: quay lai MENU");
+	char enter;
+	while(1){
+		enter=getch();
+		if(enter==13){
+    		fclose(file);
+			Menu();
+		}
+	}
+}
+//Ham doi cho
+void DoiCho(NhanVat &a, NhanVat &b){
+    NhanVat temp;
+    strcpy(temp.rank,a.rank);
+    strcpy(temp.username,a.username);
+    strcpy(a.rank,b.rank);
+    strcpy(a.username,b.username);
+    strcpy(b.rank,temp.rank);
+    strcpy(b.username,temp.username);
+}
+
+//TINH NANG//
+//Ham tao cong tac
+void  TCongTac(int xD, int yD, int xCT, int yCT){
+	for(int i=0; i<2; i++){
+		block[demBlock].VT.x=xD; block[demBlock].VT.y=yD+i; block[demBlock].kt=demButton;
+		GoTo(xD,yD+i);
+		DoiMau(MauNenNoi, MauChuNoi);
+		printf("%c",240);
+		DoiMau(MauNenNhat, MauChuNhat);
+		GhiTD();
+		demBlock++;
+	}
+	button[demButton].x=xCT; button[demButton].y=yCT;
+	GoTo(xCT,yCT);
+	DoiMau(MauNenNoi, MauChuNoi);
+	printf("%c",29);
+	DoiMau(MauNenNhat, MauChuNhat);
+	demButton++;
+}
+//Ham kiem tra cong tac
+void KTCongTac(int x, int y){
+	for(int i=0; i<=demButton; i++){
+		if(x==button[i].x && y==button[i].y){
+			for(int j=0; j<=demBlock; j++){
+				if(block[j].kt==i){
+					GoTo(block[j].VT.x,block[j].VT.y);
+					printf(" ");
+					for(int h=0; h<=demMap; h++){
+						if(map[h].VT.x==block[j].VT.x && map[h].VT.y==block[j].VT.y){
+							map[h].kt=0;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+//Ham tao thorns
+void TGai(int xD, int yD, int sl, int xQL, int yQL){
+	//Tao va ghi toa do thorns
+	for(int i=0; i<sl; i++){
+		thorns[demThorns].VT.x=xD+i; thorns[demThorns].VT.y=yD; thorns[demThorns].kt=GQL;
+		GoTo(xD+i,yD);
+		DoiMau(MauNenNoi, MauChuNoi);
+		printf("%c",30);
+		DoiMau(MauNenNhat, MauChuNhat);
+		demThorns++;
+	}
+	thornsBack[GQL].x=xQL; thornsBack[GQL].y=yQL;	//Thiet lap vi tri quay lai khi trung thorns
+	GQL++;	//Thay doi qua vi tri quay lai khac
+}
+//Ham kiem tra thorns
+void KTGai(int &x, int &y){
+	for(int i=0; i<=demThorns; i++){
+		//Neu trung thorns thi tru HP va quay lai vi tri quy dinh 
+		if((x==thorns[i].VT.x && y==thorns[i].VT.y) || (x==thorns[i].VT.x && y-1==thorns[i].VT.y)){
+			HP--;
+			NV(thornsBack[thorns[i].kt].x,thornsBack[thorns[i].kt].y);
+			XNV(thorns[i].VT.x,thorns[i].VT.y);
+			GoTo(thorns[i].VT.x,thorns[i].VT.y);
+			DoiMau(MauNenNoi, MauChuNoi);
+			printf("%c",30);
+			DoiMau(MauNenNhat, MauChuNhat);
+			x=thornsBack[thorns[i].kt].x; y=thornsBack[thorns[i].kt].y; //Quay lai vi tri quy dinh khi tao thorns
+		}
+	}
+}
+//Ham tao chia khoa
+void TChiaKhoa(int x, int y, int k){
+	key[k-1].x=x; key[k-1].y=y; //Thiet lap toa do cho chia khoa
+	GoTo(x,y);
+	DoiMau(MauNenNoi, MauChuNoi);
+	printf("*");
+	DoiMau(MauNenNhat, MauChuNhat);
+}
+// Ham kiem tra chia khoa
+void KTChiaKhoa(int x, int y){
+	for(int i=0; i<3; i++){
+		//Neu trung chia khoa thi tang so luong chia khoa va duoi toa do chia khoa di cho khac
+		if((x==key[i].x && y==key[i].y) || (x==key[i].x && y-1==key[i].y)){
+			++demKey;
+			key[i].x=30;
+			key[i].y=30;
+		}
+	}
+}
+//Ham tao cua
+void TCua(int x, int y){
+	//Ghi toa do cua
+	door[0].x=x; door[0].y=y;
+	door[1].x=x; door[1].y=y-1;
+	door[2].x=x+1; door[2].y=y;
+	door[3].x=x+1; door[3].y=y-1;
+	door[4].x=x+2; door[4].y=y;
+	door[5].x=x+2; door[5].y=y-1;
+	//In cua ra
+	for(int i=0; i<6; i++){
+		GoTo(door[i].x,door[i].y);
+		DoiMau(MauNenNoi, MauChuNoi);
+		printf("%c",197);
+		DoiMau(MauNenNhat, MauChuNhat);
+	}
+}
+//Ham kiem tra cua
+void KTCua(int &x, int &y){
+	for(int i=0; i<6; i++){
+		if((x==door[i].x && y==door[i].y) || (x==door[i].x && y-1==door[i].y)){
+			//Neu du chia khoa
+			checkDoor=true;//Xac nhan vao cua
+			if(demKey==3){
+				end();	//Chuyen sang phan ket thuc
+			}
+			//Neu chua du chia khoa
+			else{
+				if(hD==1){
+					x--;
+				}
+				else if(hD==-1){
+					x++;
+				}
+			}
+		}
+		//In lai cua
+		for(int j=0; j<6; j++){
+			GoTo(door[j].x,door[j].y);
+			DoiMau(MauNenNoi, MauChuNoi);
+			printf("%c",197);
+			DoiMau(MauNenNhat, MauChuNhat);
+		}
+	}
+	checkDoor=false;//xac nhan ra khoi cua
+}
+//Ham tao thang leo
+void TThangLeo(int xD, int yD, int KThuoc, int h){
+	for(int i=0; i<KThuoc; i++){
+		ladder[demLadder].VT.x=xD; ladder[demLadder].VT.y=yD+i; ladder[demLadder].kt=ladderGoCome;
+		GoTo(xD,yD+i);
+		DoiMau(MauNenNoi, MauChuNoi);
+		printf("%c",216);
+		DoiMau(MauNenNhat, MauChuNhat);
+		GhiTD();	//Ghi toa do de thang nhu 1 vat the khong cho vat di tiep
+		demLadder++;
+	}
+	//Thiet lap toa do diem den va di cho thang
+	if(h==1){
+		ladderGo[ladderGoCome].x=xD-1; ladderGo[ladderGoCome].y=yD+KThuoc-1;
+	}
+	else if(h==-1){
+		ladderGo[ladderGoCome].x=xD+1; ladderGo[ladderGoCome].y=yD+KThuoc-1;
+	}
+	ladderCome[ladderGoCome].x=xD; ladderCome[ladderGoCome].y=yD-2;
+	ladderGoCome++;	//Thay doi qua vi tri den va di cua thang khac 
+}
+//Ham kiem tra thang leo
+void KTThangLeo(int &x, int &y){
+	for(int i=0; i<=ladderGoCome; i++){
+		if((x==ladderGo[i].x && y==ladderGo[i].y) || (x==ladderGo[i].x && y-1==ladderGo[i].y)){
+			char phim=getch();
+			if(phim=='s'){
+				int xC=x, yC=y;
+				for(int j=0; j<=(ladderGo[i].y-ladderCome[i].y-1); j++){
+					Sleep(25);
+					XNV(xC,yC);
+					Sleep(25);
+					NV(ladderGo[i].x,ladderGo[i].y-j);
+					xC=ladderGo[i].x; yC=ladderGo[i].y-j;
+				}
+				Sleep(25);
+				XNV(xC,yC);
+				Sleep(25);
+				NV(ladderCome[i].x,ladderCome[i].y);
+				x=ladderCome[i].x; y=ladderCome[i].y;
+			}
+			else break;
+		}
+	}
+}
+//Ham tao khoi dat
+void TKhoiDat(int x, int y){
+	land[demLand].x=x; land[demLand].y=y;
+	GoTo(x,y);
+	DoiMau(MauNenNoi, MauChuNoi);
+	printf("%c",254);
+	DoiMau(MauNenNhat, MauChuNhat);
+	demLand++;
+}
+//Ham kiem tra khoi dat
+void KTKhoiDat(int &x, int &y){
+	if(hR==1){
+		for(int i=0; i<=demLand; i++){
+			if(x==land[i].x && y==land[i].y){
+				if(hD==1){
+					land[i].x++;
+					for(int h=0; h<=demMap; h++){
+						if(map[h].VT.x==land[i].x && map[h].VT.y==land[i].y){
+							x--;
+							land[i].x--;
+						}
+					}
+					GoTo(land[i].x,land[i].y);
+					DoiMau(MauNenNoi, MauChuNoi);
+					printf("%c",254);
+					DoiMau(MauNenNhat, MauChuNhat);
+				}
+				else if(hD==-1){
+					land[i].x--;
+					for(int h=0; h<=demMap; h++){
+						if(map[h].VT.x==land[i].x && map[h].VT.y==land[i].y){
+							x++;
+							land[i].x++;
+						}
+					}
+					GoTo(land[i].x,land[i].y);
+					DoiMau(MauNenNoi, MauChuNoi);
+					printf("%c",254);
+					DoiMau(MauNenNhat, MauChuNhat);
+				}
+			}
+		}
+	hR=0;
+	}
+}
+//Ham kiem tra cac tinh nang
 void KTTN(int &x, int &y){
 	KTKhoiDat(x,y);
 	KTCongTac(x,y);
@@ -80,13 +777,13 @@ void KTTN(int &x, int &y){
 int KTNgang(int x, int y){
 	for(int i=0; i<1610; i++){
 		//Xet chan
-		if(x==Map[i].VT.x && y==Map[i].VT.y){
-			if(Map[i].kt==1)
+		if(x==map[i].VT.x && y==map[i].VT.y){
+			if(map[i].kt==1)
 				return 1;
 		}
 		//Xet dau
-		else if(x==Map[i].VT.x && y-1==Map[i].VT.y){
-			if(Map[i].kt==1)
+		else if(x==map[i].VT.x && y-1==map[i].VT.y){
+			if(map[i].kt==1)
 				return 1;
 		}
 	}
@@ -96,23 +793,23 @@ int KTNgang(int x, int y){
 int KTDoc(int x, int y){
 	for(int i=0; i<1610; i++){
 		//Xet chan
-		if(x==Map[i].VT.x && y==Map[i].VT.y){
-			if(Map[i].kt==1){
+		if(x==map[i].VT.x && y==map[i].VT.y){
+			if(map[i].kt==1){
 				hR=1;
 				return 1;
 			}
 		}
 		//Xet dau
-		else if(x==Map[i].VT.x && y-1==Map[i].VT.y){
-			if(Map[i].kt==1){
+		else if(x==map[i].VT.x && y-1==map[i].VT.y){
+			if(map[i].kt==1){
 				hR=1;
 				return -1;
 			}
 		}
 	}
 	//Kiem tra xem co dung tren khoi dat khong
-	for(int j=0; j<=DemKD; j++){
-		if(x==KhoiDat[j].x && y==KhoiDat[j].y){
+	for(int j=0; j<=demLand; j++){
+		if(x==land[j].x && y==land[j].y){
 			hR=1;
 			return 1;
 		}
@@ -158,144 +855,6 @@ void KTDC(int &x, int &y){
 	}
 }
 
-//Ham kiem tra cong tac
-void KTCongTac(int x, int y){
-	for(int i=0; i<=DemCT; i++){
-		if(x==CTac[i].x && y==CTac[i].y){
-			for(int j=0; j<=DemCC; j++){
-				if(CuaChan[j].kt==i){
-					GoTo(CuaChan[j].VT.x,CuaChan[j].VT.y);
-					printf(" ");
-					for(int h=0; h<=DM; h++){
-						if(Map[h].VT.x==CuaChan[j].VT.x && Map[h].VT.y==CuaChan[j].VT.y){
-							Map[h].kt=0;
-						}
-					}
-				}
-			}
-		}
-	}
-}
-//Ham kiem tra gai
-void KTGai(int &x, int &y){
-	for(int i=0; i<=DemGai; i++){
-		//Neu trung gai thi tru HP va quay lai vi tri quy dinh 
-		if((x==Gai[i].VT.x && y==Gai[i].VT.y) || (x==Gai[i].VT.x && y-1==Gai[i].VT.y)){
-			HP--;
-			NV(GaiQL[Gai[i].kt].x,GaiQL[Gai[i].kt].y);
-			XNV(Gai[i].VT.x,Gai[i].VT.y);
-			GoTo(Gai[i].VT.x,Gai[i].VT.y);
-			DoiMau(0,9);
-			printf("%c",30);
-			DoiMau(0,11);
-			x=GaiQL[Gai[i].kt].x; y=GaiQL[Gai[i].kt].y; //Quay lai vi tri quy dinh khi tao gai
-		}
-	}
-}
-// Ham kiem tra chia khoa
-void KTChiaKhoa(int x, int y){
-	for(int i=0; i<3; i++){
-		//Neu trung chia khoa thi tang so luong chia khoa va duoi toa do chia khoa di cho khac
-		if((x==CK[i].x && y==CK[i].y) || (x==CK[i].x && y-1==CK[i].y)){
-			++DemCK;
-			CK[i].x=30;
-			CK[i].y=30;
-		}
-	}
-}
-//Ham kiem tra cua
-void KTCua(int &x, int &y){
-	for(int i=0; i<6; i++){
-		if((x==Cua[i].x && y==Cua[i].y) || (x==Cua[i].x && y-1==Cua[i].y)){
-			//Neu du chia khoa
-			CheckCua=true;//Xac nhan vao cua
-			if(DemCK==3){
-				// if(MChoi==3){
-				// 	time(&)
-				// }
-				end();	//Chuyen sang phan ket thuc
-			}
-			//Neu chua du chia khoa
-			else{
-				if(hD==1){
-					x--;
-				}
-				else if(hD==-1){
-					x++;
-				}
-			}
-		}
-		//In lai cua
-		for(int j=0; j<6; j++){
-			GoTo(Cua[j].x,Cua[j].y);
-			DoiMau(0,9);
-			printf("%c",177);
-			DoiMau(0,11);
-		}
-	}
-	CheckCua=false;//xac nhan ra khoi cua
-}
-//Ham kiem tra thang leo
-void KTThangLeo(int &x, int &y){
-	for(int i=0; i<=TDvaD; i++){
-		if((x==ThangLDi[i].x && y==ThangLDi[i].y) || (x==ThangLDi[i].x && y-1==ThangLDi[i].y)){
-			char phim=getch();
-			if(phim=='s'){
-				int xC=x, yC=y;
-				for(int j=0; j<=(ThangLDi[i].y-ThangLDen[i].y-1); j++){
-					Sleep(50);
-					XNV(xC,yC);
-					Sleep(50);
-					NV(ThangLDi[i].x,ThangLDi[i].y-j);
-					xC=ThangLDi[i].x; yC=ThangLDi[i].y-j;
-				}
-				Sleep(50);
-				XNV(xC,yC);
-				Sleep(50);
-				NV(ThangLDen[i].x,ThangLDen[i].y);
-				x=ThangLDen[i].x; y=ThangLDen[i].y;
-			}
-			else break;
-		}
-	}
-}
-//Ham kiem tra khoi dat
-void KTKhoiDat(int &x, int &y){
-	if(hR==1){
-		for(int i=0; i<=DemKD; i++){
-			if(x==KhoiDat[i].x && y==KhoiDat[i].y){
-				if(hD==1){
-					KhoiDat[i].x++;
-					for(int h=0; h<=DM; h++){
-						if(Map[h].VT.x==KhoiDat[i].x && Map[h].VT.y==KhoiDat[i].y){
-							x--;
-							KhoiDat[i].x--;
-						}
-					}
-					GoTo(KhoiDat[i].x,KhoiDat[i].y);
-					DoiMau(0,9);
-					printf("%c",254);
-					DoiMau(0,11);
-				}
-				else if(hD==-1){
-					KhoiDat[i].x--;
-					for(int h=0; h<=DM; h++){
-						if(Map[h].VT.x==KhoiDat[i].x && Map[h].VT.y==KhoiDat[i].y){
-							x++;
-							KhoiDat[i].x++;
-						}
-					}
-					GoTo(KhoiDat[i].x,KhoiDat[i].y);
-					DoiMau(0,9);
-					printf("%c",254);
-					DoiMau(0,11);
-				}
-			}
-		}
-	hR=0;
-	}
-}
-
 //HAM QUANG TRONG//
 //Ham dieu khien nhan vat
 int DieuKhien(int &x, int &y){
@@ -318,11 +877,16 @@ int DieuKhien(int &x, int &y){
 			KTGai(x,y);
 		}
 		else if(phim=='k'){
-			char hack[100], passhack[]={"hiephoimeoden"};
+			char hack[100], passhack[]={"hiephoimeoden"}, passwin[]={"khoilanhat"};
 			GoTo(0,33);
 			gets(hack);
 			if(strcmp(strlwr(hack),passhack)==0){
-				CheckCua=true;
+				checkDoor=true;
+				end();
+			}
+			if(strcmp(strlwr(hack),passwin)==0){
+				checkDoor=true;
+				gameScreen=3;
 				end();
 			}
 			DieuKhien(x,y);
@@ -362,17 +926,17 @@ void Nhay(int &x, int &y){
 	//len lan 1
 		x++; y--;
 		KTTN(x,y);
-		Sleep(20);
+		Sleep(15);
 		XNV(xC,yC);
-		Sleep(20);
+		Sleep(15);
 		NV(x,y);
 		xC=x; yC=y;
 	//len lan 2
 		x++; y--;
 		KTTN(x,y);
-		Sleep(20);
+		Sleep(15);
 		XNV(xC,yC);
-		Sleep(20);
+		Sleep(15);
 		NV(x,y);
 		xC=x; yC=y;
 		dc=2;
@@ -382,17 +946,17 @@ void Nhay(int &x, int &y){
 	//len lan 1
 		x--; y--;
 		KTTN(x,y);
-		Sleep(20);
+		Sleep(15);
 		XNV(xC,yC);
-		Sleep(20);
+		Sleep(15);
 		NV(x,y);
 		xC=x; yC=y;
 	//len lan 2
 		x--; y--;
 		KTTN(x,y);
-		Sleep(20);
+		Sleep(15);
 		XNV(xC,yC);
-		Sleep(20);
+		Sleep(15);
 		NV(x,y);
 		xC=x; yC=y;
 		dc=2;
@@ -405,42 +969,42 @@ void Nhay(int &x, int &y){
 		//len lan 1
 			x++; y--;
 			KTTN(x,y);
-			Sleep(20);
+			Sleep(15);
 			XNV(xC,yC);
-			Sleep(20);
+			Sleep(15);
 			NV(x,y);
 			xC=x; yC=y;
 		//len lan 2
 			x++; y--;
 			KTTN(x,y);
-			Sleep(20);
+			Sleep(15);
 			XNV(xC,yC);
-			Sleep(20);
+			Sleep(15);
 			NV(x,y);
 			xC=x; yC=y;
 		//len lan 3
 			x++; y--;
 			KTTN(x,y);
-			Sleep(20);
+			Sleep(15);
 			XNV(xC,yC);
-			Sleep(20);
+			Sleep(15);
 			NV(x,y);
 			xC=x; yC=y;
 		//đi ngang lan 1
 			x++;
 			KTTN(x,y);
-			Sleep(20);
+			Sleep(15);
 			XNV(xC,yC);
-			Sleep(20);
+			Sleep(15);
 			NV(x,y);
 			xC=x; yC=y;
 			dc=3;
 		//đi ngang lan 2
 			x++;
 			KTTN(x,y);
-			Sleep(20);
+			Sleep(15);
 			XNV(xC,yC);
-			Sleep(20);
+			Sleep(15);
 			NV(x,y);
 			xC=x; yC=y;
 			dc=3;
@@ -450,42 +1014,42 @@ void Nhay(int &x, int &y){
 		//len lan 1
 			x--; y--;
 			KTTN(x,y);
-			Sleep(20);
+			Sleep(15);
 			XNV(xC,yC);
-			Sleep(20);
+			Sleep(15);
 			NV(x,y);
 			xC=x; yC=y;
 		//len lan 2
 			x--; y--;
 			KTTN(x,y);
-			Sleep(20);
+			Sleep(15);
 			XNV(xC,yC);
-			Sleep(20);
+			Sleep(15);
 			NV(x,y);
 			xC=x; yC=y;
 		//len lan 3
 			x--; y--;
 			KTTN(x,y);
-			Sleep(20);
+			Sleep(15);
 			XNV(xC,yC);
-			Sleep(20);
+			Sleep(15);
 			NV(x,y);
 			xC=x; yC=y;
 		//đi ngang lan 1
 			x--;
 			KTTN(x,y);
-			Sleep(20);
+			Sleep(15);
 			XNV(xC,yC);
-			Sleep(20);
+			Sleep(15);
 			NV(x,y);
 			xC=x; yC=y;
 			dc=3;
 		//đi ngang lan 2
 			x--;
 			KTTN(x,y);
-			Sleep(20);
+			Sleep(15);
 			XNV(xC,yC);
-			Sleep(20);
+			Sleep(15);
 			NV(x,y);
 			xC=x; yC=y;
 			dc=3;
@@ -499,94 +1063,467 @@ void Nhay(int &x, int &y){
 		if(hD==1){
 			x++; y++;
 			KTTN(x,y);
-			Sleep(20);
+			Sleep(15);
 			XNV(xC,yC);
-			Sleep(20);
+			Sleep(15);
 			NV(x,y);
 			xC=x; yC=y;
 		}
 		else if(hD==-1){
 			x--; y++;
 			KTTN(x,y);
-			Sleep(20);
+			Sleep(15);
 			XNV(xC,yC);
-			Sleep(20);
+			Sleep(15);
 			NV(x,y);
 			xC=x; yC=y;
 		}
 	}
 }
 
+//Ham tao khung
+void Khung(int gtt, int gtp, int gdt, int gdp, int cn, int cd){
+	for(int i=0; i<=28; i++){
+		for(int j=0; j<=114; j++){
+			if(i==0 || i==28 || j==0 || j==114){
+				if(i==0 && j==0){
+					printf("%c",gtt);
+                    GhiTD();
+                }
+				else if(i==0 && j==114){
+					printf("%c",gtp);
+                    GhiTD();
+                }
+				else if(i==28 && j==0){
+					printf("%c",gdt);
+                    GhiTD();
+                }
+				else if(i==28 && j==114){
+					printf("%c",gdp);
+                    GhiTD();
+                }
+				else{
+					if(j==0 || j==114){
+					    printf("%c",cd);
+                        GhiTD();
+					}
+					else
+						printf("%c",cn);
+                        GhiTD();
+				}
+			}
+			else
+				printf(" ");
+		}
+		printf("\n");
+	}
+}
+//Ham menu (chưa sửa nội dung)
+void Menu(){
+    system("cls");
+    //Khoi tao bien chon phuong an va bien chon phuong an truoc đo
+    int  chon = 1, choncu = 0;
+    //Noi dung
+    DoiMau(MauNenNoi, MauChuNoi);
+    GoTo(45,12);
+    printf("%c %c %c %c THE RIVER %c %c %c %c",3,4,5,6,6,5,4,3);
+    GoTo(54,13);
+	DoiMau(MauNenNhat, MauChuNhat);
+    printf("BAT DAU");
+    GoTo(53,14);
+    printf("LUAT CHOI");
+    GoTo(54,15);
+    printf(" KY LUC");
+    GoTo(51,16);
+    printf("THONG TIN GAME ");
+    GoTo(1,27);
+    printf("ESC: thoat game!");
+	//Di chuyen con tro
+    while(1){
+    	DC_Chon_Menu(chon,choncu); //Hien vi tri con tro đe chon
+		char lenh;
+		if(kbhit()){ //Kiem tra bo đem ban phim
+			lenh=getch();
+			if(lenh==13)
+		 		break; //Dung vong lap (chon phuong an)
+ 			if(lenh==80){
+				if(chon<4){
+					chon++;
+					choncu=chon-1;
+					DC_Chon_Menu(chon,choncu);
+				}
+			}
+			if(lenh==72){
+				if(chon>1){
+					chon--; 
+					choncu=chon+1;	
+					DC_Chon_Menu(chon,choncu);
+				}
+			}
+			if(lenh==27){
+				system("cls");
+				exit(0);
+			}	//Thoat game
+		}
+	}
+    //Bat dau game
+    if(chon==1){
+		GhiLuotChoi();
+		time(&ghiNV.t1);
+		Man_1();
+	}
+	//Luat choi
+	if(chon==2){
+		system("cls");
+		DoiMau(MauNenNoi, MauChuNoi);
+		GoTo(47,1);
+    	printf("------LUAT CHOI------\n\n");
 
-//Ham thay đoi mau
-void DoiMau(int MauNen, int MauChu){
-    HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE); //Đau ra
-    int Mau = MauNen * 16 + MauChu; //Cong thuc tao mau
-    SetConsoleTextAttribute(hStdout, Mau); //Ham thay đoi mau
+		DoiMau(MauNenNhat, MauChuNhat);
+		printf("\t\t Di chuyen bang cac phim:\n\t\t a: sang trai\t\td: sang phai\t\ts: leo len thang\n");
+		printf("\t\t w + a: nhay gan sang trai\n\t\t w + w + a: nhay xa sang trai\n\t\t w + d: nhay gan sang phai\n\t\t w + w + d: nhay xa sang phai\n\n");
+
+		printf("\t\t Nhiem vu cua ban la vuot qua cac cam bay va co quan de thu thap\n");
+		printf("\t\t nhung chiec chia khoa that lac, va mo canh cua de qua mang ke tiep.\n");
+		printf("\t\t Ban co 3 mang. Moi lan cham vao cam bay (thorns nhon), ban se mat 1 mang\n\n");
+
+		printf("\t\t Thanh tich cua ban se duoc tinh bang thoi gian hoan thanh mang choi. Toc do\n");
+		printf("\t\t cang nhanh thu hang cang cao.\n\t\t Hay hoan thanh nhat co the va HAY CAN THAN CAM BAY!\n");
+		GoTo(1,20);
+		printf("\nENTER: quay lai MENU\n");
+		char enter;
+		while(1){
+			enter=getch();
+			if(enter==13)
+				Menu();
+		}
+	}
+	//Phan ky luc
+    if(chon==3){
+    	xuatFileKiLuc();
+    }
+	//Phan thong tin ve game
+    if(chon==4){
+		trang1:
+		system("cls");
+		DoiMau(MauNenNoi, MauChuNoi);
+		GoTo(43,1);
+		printf("------*THONG TIN GAME*------\n\n");
+
+		DoiMau(MauNenNhat, MauChuNhat);
+		printf("\t\t Ten game: The river\n\n");
+
+		printf("\t\t Tom la mot nguoi co niem say me ve vo thuat, la mot ngưoi co long dung cam va day tham \n");
+		printf("\t\t vong. Mot hom,Tom da bi mac ket trong giac mo của chinh minh va khong the tinh day đuoc. \n"); 
+		printf("\t\t Anh ta biet minh dang o trong giac mo va bat dau nhin xung quanh đe tim cach thoat ra. Nhung \n");
+		printf("\t\t anh ta nhan ra rang giac mo nay khong phai la mot giac mo binh thuong ma la mot the gioi \n");
+		printf("\t\t hoan toan khac biet va tuyet dep hon.\n\n");
+
+		printf("\t\t Nhin chung, nhung thu thach trong giac mo thay doi lien tuc. Co luc Tom duoc dua vao mot \n");
+		printf("\t\t canh vat hoang so, day nhung hiem nguy. Giac mo cung dua anh ta den mot thi tran tuong \n");
+		printf("\t\t chung nhu hoang tan, toi te, voi cac dot cuong phong huy hoai moi thu. \n\n");
+
+		printf("\t\t Tren cuoc hanh trinh gian truan ay, Tom da gap mot co thorns tuyet dep va thong minh nhung rat \n");
+		printf("\t\t bi an. Co ay huong dan Tom ve canh cua thoat ra khoi giac mo, nhung truoc do, anh ta phai tim \n ");
+		printf("\t\t duoc chia khoa cua.") ;
+
+		GoTo(51,20);
+		printf("MENU %c\t%c Tiep theo",17,16);
+		char LC1;
+		while(1){
+			LC1=getch();
+			if(LC1==75){
+				Menu();
+			}
+			else if(LC1==77){
+				break;
+			}
+		}
+
+		trang2:
+		system("cls");
+		DoiMau(MauNenNoi, MauChuNoi);
+		GoTo(43,1);
+		printf("------*THONG TIN GAME*------\n\n");
+ 
+		DoiMau(MauNenNhat, MauChuNhat);
+		printf("\t\t Sau nhieu no luc tim kiem, Tom da tim thay chia khoa cua nhung phai danh bai mot con quai \n");
+		printf("\t\t vat khong lo de lay duoc no. Tom da su dung tai nang va su hung bien cua minh trong vo thuat \n"); 
+		printf("\t\t va chien dau de danh bai con quai vat. Cuoi cung, Tom mo khoa cua va thoat ra khoi giac mo.\n\n");
+
+		printf("\t\t Va khi Tom tinh giac, anh ta nhan ra rang cua hien ra truoc mat anh ta, chinh la canh cua da \n");
+		printf("\t\t giup anh ta thoat khoi giac mo ki la do. Tom hieu ro rang trong giac mo, anh da hoc duoc rat \n");
+		printf("\t\t nhieu dieu va kien thuc moi, va anh hy vong co the bien giac mo tuyet voi do thanh hien thuc \n");
+		printf("\t\t trong cuoc song cua minh.\n\n");
+
+		GoTo(47,20);
+		printf("Quay lai %c\t%c Tiep theo",17,16);
+		char LC2;
+		while(1){
+			LC2=getch();
+			if(LC2==75){
+				goto trang1;
+			}
+			else if(LC2==77){
+				break;
+			}
+		}
+
+		system("cls");
+		DoiMau(MauNenNoi, MauChuNoi);
+		GoTo(43,1);
+		printf("------*THONG TIN NHOM*------\n\n");
+
+		DoiMau(MauNenNhat, MauChuNhat);
+		printf("\t\t Nhom truong: Le Dinh Khoi\n");
+		printf("\t\t Mssv: 6351071035\n");
+		printf("\t\t Mail:\n\n");
+		printf("\t\t Thanh vien : Tran Phuong Anh\n");
+		printf("\t\t Mssv: 6351071002\n");
+		printf("\t\t Mail:\n\n");
+		printf("\t\t Thanh vien : Do Van Thanh Duoc\n");
+		printf("\t\t Mssv: 6351071021\n");
+		printf("\t\t Mail:\n\n");
+		printf("\t\t Thanh vien : Nguyen Van Dung\n");
+		printf("\t\t Mssv: 6351071020\n");
+		printf("\t\t Mail:\n\n");
+		
+		GoTo(47,20);
+		printf("Quay lai %c\t%c Thoat!!!",17,16);
+		char LC3;
+		while(1){
+			LC3=getch();
+			if(LC3==75){
+				goto trang2;
+			}
+			else if(LC3==77){
+				Menu();
+			}
+		}
+	}
 }
-//Ham di chuyển con tro
-void GoTo(SHORT X, SHORT Y){
-	HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE); //Đau ra
-    COORD ToaDo; //Tao toa đo
-    ToaDo.X = X;
-    ToaDo.Y = Y;
-	SetConsoleCursorPosition(hStdout, ToaDo); //Ham di chuyen
+//Ham hien thi con tro tai phuong an chon
+void DC_Chon_Menu(int chon, int choncu){
+    //1=> 2->1
+    if(chon==1){
+		if(choncu==2){
+			GoTo(51,14);
+			DoiMau(MauNenNhat, MauChuNhat);
+    		printf("  LUAT CHOI");
+		}
+		GoTo(52,13);
+		DoiMau(MauNenNoi, MauChuNoi);
+		printf("%c BAT DAU",16);
+		DoiMau(MauNenNhat, MauChuNhat);
+	}
+    //2=> 1->2 hoặc 3->2
+	if(chon==2){
+		if(choncu==1){
+			GoTo(52,13);
+			DoiMau(MauNenNhat, MauChuNhat);
+    		printf("  BAT DAU");
+		}
+		if(choncu==3){
+			GoTo(52,15);
+			DoiMau(MauNenNhat, MauChuNhat);
+    		printf("   KY LUC");	
+		}
+		GoTo(51,14);
+		DoiMau(MauNenNoi, MauChuNoi);
+		printf("%c LUAT CHOI",16);
+		DoiMau(MauNenNhat, MauChuNhat);
+	}
+    //3=> 2->3 hoặc 4->3
+	if(chon==3){
+		if(choncu==2){
+			GoTo(51,14);
+			DoiMau(MauNenNhat, MauChuNhat);
+    		printf("  LUAT CHOI");	
+		}
+		if(choncu==4){
+			GoTo(49,16);
+			DoiMau(MauNenNhat, MauChuNhat);
+    		printf("  THONG TIN GAME ");	
+		}
+		GoTo(52,15);
+		DoiMau(MauNenNoi, MauChuNoi);
+		printf("%c  KY LUC",16);
+		DoiMau(MauNenNhat, MauChuNhat);
+	}
+    //4=> 3->4 
+	if(chon==4){
+		if(choncu==3){
+			GoTo(52,15);
+			DoiMau(MauNenNhat, MauChuNhat);
+    		printf("   KY LUC");	
+		}
+		GoTo(49,16);
+		DoiMau(MauNenNoi, MauChuNoi);
+		printf("%c THONG TIN GAME ",16);
+		DoiMau(MauNenNhat, MauChuNhat);
+	}
 }
-//Ham an con tro
-void ShowCur(bool CursorVisibility){
-	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-    CONSOLE_CURSOR_INFO ConCurInf;
-    ConCurInf.dwSize = 10;
-    ConCurInf.bVisible = CursorVisibility;
-    SetConsoleCursorInfo(handle, &ConCurInf);
+//Ham hien thi vat pham
+void HienThi(){
+	GoTo(0,31);
+	printf("HP: %c %c %c %c %c",3,3,3,3,3);
+	int j=12;
+	while(j>((HP+1)*2)){
+		GoTo(j,31);
+		printf(" ");
+		j-=2;
+	}
+	GoTo(20,31);
+	printf("Chia khoa: ");
+	for(int i=1; i<=demKey; i++){
+		printf("%c ",42);
+	}
 }
-//Ham lay toa đo x cua con tro
-int where_x(){
-	CONSOLE_SCREEN_BUFFER_INFO coninfo; 
-	GetConsoleScreenBufferInfo (GetStdHandle(STD_OUTPUT_HANDLE), &coninfo); //Truyen vao đau ra va toa đo 
-	return coninfo.dwCursorPosition.X; //Toa đo x cua con tro
+//Ham ket thuc
+void end(){
+	if(HP==0){
+		system("cls");
+		GoTo(52,13);
+		printf("BAN DA THUA");
+		GoTo(56,14);
+		printf(":((");
+		GoTo(0,27);
+		printf("ESC: quay lai menu   ENTER: choi lai");
+		while(1){
+			char phim=getch();
+			if(phim==27){
+				GhiThoiGian(10000);
+				Menu();
+			}
+			if(phim==13){
+				if(gameScreen==1){
+					Man_1();
+				}
+				if(gameScreen==2){
+					Man_2();
+				}
+				if(gameScreen==3){
+					Man_3();
+				}
+			}
+		}	
+	}
+	if(checkDoor==true){
+		if(gameScreen==3){
+			time(&ghiNV.t2);
+			Outro();
+			system("cls");
+			GoTo(50,13);
+			printf("XIN CHUC MUNG!!!");
+			GoTo(38,14);
+			printf("BAN DA HOAN THANH MAN CHOI VOI KI LUC: %.3f",difftime(ghiNV.t2,ghiNV.t1));
+			GoTo(0,27);
+			printf("ESC: quay lai menu");
+			GhiThoiGian(difftime(ghiNV.t2,ghiNV.t1));
+			while(1){
+				char phim=getch();
+				if(phim==27){
+					Menu();
+				}
+			}
+		}
+		system("cls");
+		GoTo(50,13);
+		printf("XIN CHUC MUNG!!!");
+		GoTo(44,14);
+		printf("BAN DA HOAN THANH MAN CHOI");
+		GoTo(0,27);
+		printf("ESC: quay lai menu   ENTER: man tiep theo");
+		while(1){
+			char phim=getch();
+			if(phim==27){
+				Menu();
+			}
+			if(phim==13){
+				if(gameScreen==1){
+					Man_2();
+				}
+				if(gameScreen==2){
+					Man_3();
+				}
+			}
+		}	
+	}
 }
-//Ham lay toa đo y cua con tro
-int where_y(){
-	CONSOLE_SCREEN_BUFFER_INFO coninfo;
-	GetConsoleScreenBufferInfo (GetStdHandle(STD_OUTPUT_HANDLE), &coninfo); //Truyen vao đau ra va toa đo
-	return coninfo.dwCursorPosition.Y; //Toa đo y cua con tro
+//Ham reset lai cac thong so
+void Reset(){
+	for(int i=0; i<=1610; i++){
+		map[i].VT.x=0;
+		map[i].VT.y=0;
+		map[i].kt=0;
+	}
+	for(int i=0; i<=500; i++){
+		thorns[i].VT.x=0;
+		thorns[i].VT.y=0;
+		thorns[i].kt=0;
+	}
+	for(int i=0; i<=50; i++){
+		ladder[i].VT.x=0;
+		ladder[i].VT.y=0;
+		ladder[i].kt=0;
+	}
+	for(int i=0; i<=50; i++){
+		block[i].VT.x=0;
+		block[i].VT.y=0;
+		block[i].kt=0;
+	}
+	for(int i=0; i<=10; i++){
+		key[i].x=0; key[i].y=0;
+		door[i].x=0; door[i].y=0;
+		thornsBack[i].x=0; thornsBack[i].y=0;
+		ladderCome[i].x=0; ladderCome[i].y=0;
+		ladderGo[i].x=0; ladderGo[i].y=0;
+		land[i].x=0; land[i].y=0;
+		button[i].x=0; button[i].y=0;
+	}
+	HP=5;	//Mau cua nhan vat
+	demMap=0;	//Bien dem de ghi toa do dat
+	demKey=0;	//Bien dem so luong chia khoa nhan vat dang co
+	demThorns=0;	//Bien dem so luong thorns trong map
+	GQL=0;	//Bien chi dinhj vi tri qua lai khi trug thorns
+	demLadder=0;	//Bien dem so luong bac thang co trong map
+	ladderGoCome=0;	//Bieen chi dinh vi tri den va di khi leo thang
+	demLand=0;	//Bien dem so luong khoi dat trong map
+	hD=0;	//Huong di chuyen cua nhan vat  1:phai  -1:trai
+	hR=0;
+	demButton=0;	//Bien dem so cong tac tren map
+	demBlock=0;	//Bien dem so luong cua chan cos tren map
+	checkDoor=false;	//Huong roi cua nhan vat
 }
 
-//In nhan vat
-void NV(int x, int y){
-	DoiMau(0,9);
-	//Chan
-	GoTo(x, y);
-	printf("%c",19);
-	//Đau
-	GoTo(x, y-1);
-	printf("%c",64);
-	DoiMau(0,11);
+//Man chơi
+void Man_1(){
+	gameScreen=1;
+	Reset();
+	Map_1(219);
+	NV(nv.x,nv.y);
+	DieuKhien(nv.x,nv.y);
 }
-//Xoa nhan vat
-void XNV(int x, int y){
-	//Chan 
-	GoTo(x, y);
-	printf(" ");
-	//Đau
-	GoTo(x, y-1);
-	printf(" ");
+void Man_2(){
+	gameScreen=2;
+	Reset();
+	Map_2(219);
+	NV(nv.x,nv.y);
+	DieuKhien(nv.x,nv.y);
 }
-//Ghi toa đo map
-void GhiTD(){
-	Map[DM].VT.x=where_x()-1;
-    Map[DM].VT.y=where_y();
-    Map[DM].kt=1;
-    DM++;
+void Man_3(){
+	gameScreen=3;
+	Reset();
+	Map_3(219);
+	NV(nv.x,nv.y);
+	DieuKhien(nv.x,nv.y);
 }
 
-
-//MAP GAME	(178)
+//MAP GAME (178)
 void Map_3(int canh){
 	nv.x=4; nv.y=27;
 	system("cls");
-	DoiMau(0,11);
+	DoiMau(MauNenNhat, MauChuNhat);
 	Khung(201,187,200,188,205,186);
 	TCua(5,10);
 	TGai(20,5,29,19,4);
@@ -934,7 +1871,7 @@ void Map_3(int canh){
 void Map_2(int canh){
 	nv.x=4; nv.y=27;
 	system("cls");
-	DoiMau(0,11);
+	DoiMau(MauNenNhat, MauChuNhat);
 	Khung(201,187,200,188,205,186);
 	TCua(2,4);
 	TGai(10,22,3,8,20);
@@ -1172,7 +2109,7 @@ void Map_2(int canh){
 void Map_1(int canh){
 	nv.x=2; nv.y=27;
 	system("cls");
-	DoiMau(0,11);
+	DoiMau(MauNenNhat, MauChuNhat);
 	Khung(201,187,200,188,205,186);
 	TCua(111,22);
 	TGai(11,27,11,9,24);
@@ -1180,8 +2117,8 @@ void Map_1(int canh){
 	TGai(54,27,23,78,24);
 	TGai(80,27,15,78,24);
 	TGai(106,27,8,104,25);
-	TChiaKhoa(27,20,1);
-	TChiaKhoa(50,22,2);
+	TChiaKhoa(32,20,1);
+	TChiaKhoa(49,22,2);
 	TChiaKhoa(96,5,3);
 	TThangLeo(51,11,5,1);
 	TKhoiDat(48,27);
@@ -1332,7 +2269,7 @@ void Map_1(int canh){
         GhiTD();
 	}
 	//Khu 3
-	GoTo(52,27);
+	GoTo(53,27);
 	printf("%c",canh);
     GhiTD();
 	for(int j=56,i=25; j<=79; j+=8){
@@ -1406,9 +2343,9 @@ void Map_1(int canh){
 		GoTo(j+4,i);
 		printf("%c",canh);
 		GhiTD();
-		i+=2;
+		i+=3;
 	}
-	for(int j=80,i=9; j<=98; j+=5){
+	for(int j=80,i=9; j<=98; j+=7){
 		GoTo(j,i);
 		printf("%c",canh);
 		GhiTD();
@@ -1434,820 +2371,6 @@ void Map_1(int canh){
 		printf("%c",canh);
         GhiTD();
 	}
-}
-
-//Ham tao cua
-void TCua(int x, int y){
-	//Ghi toa do cua
-	Cua[0].x=x; Cua[0].y=y;
-	Cua[1].x=x; Cua[1].y=y-1;
-	Cua[2].x=x+1; Cua[2].y=y;
-	Cua[3].x=x+1; Cua[3].y=y-1;
-	Cua[4].x=x+2; Cua[4].y=y;
-	Cua[5].x=x+2; Cua[5].y=y-1;
-	//In cua ra
-	for(int i=0; i<6; i++){
-		GoTo(Cua[i].x,Cua[i].y);
-		DoiMau(0,9);
-		printf("%c",176);
-		DoiMau(0,11);
-	}
-}
-//Ham tao chia khoa
-void TChiaKhoa(int x, int y, int k){
-	CK[k-1].x=x; CK[k-1].y=y; //Thiet lap toa do cho chia khoa
-	GoTo(x,y);
-	DoiMau(0,9);
-	printf("*");
-	DoiMau(0,11);
-}
-//Ham tao cong tac
-void  TCongTac(int xD, int yD, int xCT, int yCT){
-	for(int i=0; i<2; i++){
-		CuaChan[DemCC].VT.x=xD; CuaChan[DemCC].VT.y=yD+i; CuaChan[DemCC].kt=DemCT;
-		GoTo(xD,yD+i);
-		DoiMau(0,9);
-		printf("%c",240);
-		DoiMau(0,11);
-		GhiTD();
-		DemCC++;
-	}
-	CTac[DemCT].x=xCT; CTac[DemCT].y=yCT;
-	GoTo(xCT,yCT);
-	DoiMau(0,9);
-	printf("%c",29);
-	DoiMau(0,11);
-	DemCT++;
-}
-//Ham tao khoi dat
-void TKhoiDat(int x, int y){
-	KhoiDat[DemKD].x=x; KhoiDat[DemKD].y=y;
-	GoTo(x,y);
-	DoiMau(0,9);
-	printf("%c",254);
-	DoiMau(0,11);
-	DemKD++;
-}
-//Ham tao gai
-void TGai(int xD, int yD, int sl, int xQL, int yQL){
-	//Tao va ghi toa do gai
-	for(int i=0; i<sl; i++){
-		Gai[DemGai].VT.x=xD+i; Gai[DemGai].VT.y=yD; Gai[DemGai].kt=GQL;
-		GoTo(xD+i,yD);
-		DoiMau(0,9);
-		printf("%c",30);
-		DoiMau(0,11);
-		DemGai++;
-	}
-	GaiQL[GQL].x=xQL; GaiQL[GQL].y=yQL;	//Thiet lap vi tri quay lai khi trung gai
-	GQL++;	//Thay doi qua vi tri quay lai khac
-}
-//Ham tao thang leo
-void TThangLeo(int xD, int yD, int KThuoc, int h){
-	for(int i=0; i<KThuoc; i++){
-		ThangL[DemTL].VT.x=xD; ThangL[DemTL].VT.y=yD+i; ThangL[DemTL].kt=TDvaD;
-		GoTo(xD,yD+i);
-		DoiMau(0,9);
-		printf("%c",216);
-		DoiMau(0,11);
-		GhiTD();	//Ghi toa do de thang nhu 1 vat the khong cho vat di tiep
-		DemTL++;
-	}
-	//Thiet lap toa do diem den va di cho thang
-	if(h==1){
-		ThangLDi[TDvaD].x=xD-1; ThangLDi[TDvaD].y=yD+KThuoc-1;
-	}
-	else if(h==-1){
-		ThangLDi[TDvaD].x=xD+1; ThangLDi[TDvaD].y=yD+KThuoc-1;
-	}
-	ThangLDen[TDvaD].x=xD; ThangLDen[TDvaD].y=yD-2;
-	TDvaD++;	//Thay doi qua vi tri den va di cua thang khac 
-}
-//Ham tao khung
-void Khung(int gtt, int gtp, int gdt, int gdp, int cn, int cd){
-	for(int i=0; i<=28; i++){
-		for(int j=0; j<=114; j++){
-			if(i==0 || i==28 || j==0 || j==114){
-				if(i==0 && j==0){
-					printf("%c",gtt);
-                    GhiTD();
-                }
-				else if(i==0 && j==114){
-					printf("%c",gtp);
-                    GhiTD();
-                }
-				else if(i==28 && j==0){
-					printf("%c",gdt);
-                    GhiTD();
-                }
-				else if(i==28 && j==114){
-					printf("%c",gdp);
-                    GhiTD();
-                }
-				else{
-					if(j==0 || j==114){
-					    printf("%c",cd);
-                        GhiTD();
-					}
-					else
-						printf("%c",cn);
-                        GhiTD();
-				}
-			}
-			else
-				printf(" ");
-		}
-		printf("\n");
-	}
-}
-
-
-//Ham hien thi dang ky, dang nhap
-int DKy_DNhap(){
-    system("cls");
-    //Khoi tao bien chon phuong an va bien chon phuong an truoc đo
-    int  chon = 1, choncu = 0;
-    //Noi dung
-    DoiMau(0,9);
-    GoTo(45,12);
-    printf("%c %c %c %c THE RIVER %c %c %c %c",3,4,5,6,6,5,4,3);
-	DoiMau(0,11);
-    GoTo(54,14);
-    printf("DANG KY");
-    GoTo(53,15);
-    printf("DANG NHAP");
-    GoTo(1,27);
-    printf("ESC: thoat game!");
-	//Di chuyen con tro
-    while(1){
-    	DC_Chon_DKy_DNhap(chon,choncu); //Hien vi tri con tro đe chon
-		char lenh;
-		if(kbhit()){ //Kiem tra bo đem ban phim
-			lenh=getch();
-			if(lenh==13)
-		 		break; //Dung vong lap (chon phuong an)
- 			if(lenh==80){
-				if(chon<2){
-					chon++;
-					choncu=chon-1;
-					DC_Chon_DKy_DNhap(chon,choncu);
-				}
-			}
-			if(lenh==72){
-				if(chon>1){
-					chon--; 
-					choncu=chon+1;	
-					DC_Chon_DKy_DNhap(chon,choncu);
-				}
-			}
-			if(lenh==27)	//Thoat game
-				return 0;
-		}
-	}
-    //Dang ky
-    if(chon==1){
-		TaoTK();
-	}
-	//Dang nhap
-	if(chon==2){
-		DangNhapTK();
-	}
-}
-//Ham hien thi con tro tai phuong an chon
-void DC_Chon_DKy_DNhap(int chon, int choncu){
-    //1=> 2->1
-    if(chon==1){
-		if(choncu==2){
-			GoTo(51,15);
-			DoiMau(0,11);
-    		printf("  DANG NHAP");
-		}
-		GoTo(52,14);
-		DoiMau(0,9);
-		printf("%c DANG KY",16);
-		DoiMau(0,11);
-	}
-    //2=> 1->2 hoặc 3->2
-	if(chon==2){
-		if(choncu==1){
-			GoTo(52,14);
-			DoiMau(0,11);
-    		printf("  DANG KY");
-		}
-		GoTo(51,15);
-		DoiMau(0,9);
-		printf("%c DANG NHAP",16);
-		DoiMau(0,11);
-	}
-}
-//Ham tao tai khoan
-void TaoTK(){
-	system("cls");
-	GoTo(44,10);
-	DoiMau(0,9);
-    printf("-----DANG KI TAI KHOAN-----\n");
-	DoiMau(0,11);
-    printf("Tai Khoan: ");
-    gets(TK.name);
-	Sleep(1000);
-
-    nhapMatKhau:
-	system("cls");
-	GoTo(44,10);
-	DoiMau(0,9);
-    printf("-----DANG KI TAI KHOAN-----\n");
-	DoiMau(0,11);
-    printf("Mat Khau: ");
-    gets(TK.pass); 
-    if(CheckPass(TK.pass)){
-		GoTo(45,14);
-        printf("Nhap mat khau thanh cong!");
-		Sleep(1000);
-		goto nhapNgaySinh;
-    }
-    else{
-		GoTo(30,14);
-        printf("Mat khau phai co ki tu dat biet, chu thuong, chu hoa!!!");
-		GoTo(43,15);
-        printf("Vui long nhap lai mat khau !");
-		Sleep(1000);
-        goto nhapMatKhau;
-    }
-
-    nhapNgaySinh:
-	system("cls");
-	GoTo(44,10);
-	DoiMau(0,9);
-    printf("-----DANG KI TAI KHOAN-----\n");
-	DoiMau(0,11);
-    printf("Ngay sinh(xx/yy/zzzz): ");
-    scanf("%d/%d/%d",&TK.NgaySinh.ngay,&TK.NgaySinh.thang,&TK.NgaySinh.nam);
-    getchar();
-    if(CheckDate()){
-        TinhTuoi();
-        if(TK.tuoi<13){
-			GoTo(45,14);
-        	printf("Do tuoi khong duoc phep choi game nay!!!");
-			Sleep(1000);
-			DKy_DNhap();
-        }
-        char tenFile[50];
-        strcpy(tenFile,TK.name);
-        strcat(tenFile,".txt"); //Tao file theo ten tai khoan
-        FILE* file;
-        file=fopen(tenFile,"w");
-        if(file==NULL){
-			GoTo(29,14);
-            printf("Co loi Khong the tao hoac mo duoc file luu tai khoan mat khau!!!");
-			Sleep(1000);
-            DKy_DNhap();
-        }
-        fprintf(file,"%s",TK.pass);
-        fclose(file);
-		GhiLuotChoi();
-    }
-    else{
-		GoTo(45,14);
-        printf("Ngay sinh khong hop le !!!");
-		Sleep(1000);
-        goto nhapNgaySinh;
-    }
-}
-// Ham dang nhap tai khoan
-void DangNhapTK(){
-    Nhap:
-	system("cls");
-	GoTo(42,10);
-	DoiMau(0,9);
-    printf("-----DANG NHAP TAI KHOAN-----\n");
-	DoiMau(0,11);
-    printf("Tai Khoan: ");
-    gets(TK.name);
-    FILE* file;
-    char tenFile[50];
-    strcpy(tenFile,TK.name);
-    strcat(tenFile,".txt");
-    file=fopen(tenFile,"r");
-    if(file==NULL){
-		GoTo(44,14);
-        printf("Tai Khoan Khong Ton Tai !!!");
-		Sleep(1000);
-        DKy_DNhap();
-    }
-    char MatKhau[50];
-    fscanf(file,"%s",&MatKhau);
-    printf("\nMat Khau: ");
-    gets(TK.pass);
-    if(strcmp(TK.pass,MatKhau)==0){
-		GoTo(46,14);
-        printf("DANG NHAP THANH CONG!!");
-		Sleep(1000);
-		GhiLuotChoi();
-    }
-    else{
-		GoTo(47,14);
-        printf("Mat khau khong dung!!!");
-		Sleep(1000);
-        goto Nhap;
-    }
-}
-// Ham kiem tra chuoi co ki tu dat biet, chu thuong, chu hoa
-bool CheckPass(char a[]){
-    size_t len=strlen(a);
-    for(int i=0; i<len; i++){
-        //Kiem tra ki tu dac biet
-        if((a[i]>=33 && a[i]<=47) || (a[i]>=58 && a[i]<=64) || (a[i]>=91 && a[i]<=96)){
-            for(int j=0; j<len; j++){
-                //Kiem tra chu thuong
-                if(a[j]>=97 && a[j]<=122){
-                    for(int z=0; z<len; z++){
-                        //Kiem tra chu hoa
-                        if((a[z]>=65 && a[z]<=90)){
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return false;
-}
-//Ham kiem tra ngay thang nam
-int CheckDate(){
-    if(TK.NgaySinh.ngay>31|| TK.NgaySinh.ngay<=0 || TK.NgaySinh.nam<=0||TK.NgaySinh.thang>12|| TK.NgaySinh.thang<=0){
-        return 0;
-    }
-    if(TK.NgaySinh.thang==1 || TK.NgaySinh.thang ==3|| TK.NgaySinh.thang==5|| TK.NgaySinh.thang==7|| TK.NgaySinh.thang==8|| TK.NgaySinh.thang==10|| TK.NgaySinh.thang==12){
-        if(TK.NgaySinh.ngay<=31){
-            return 1;
-        }
-		else return 0;
-    }
-	else if(TK.NgaySinh.thang==2){
-        if((TK.NgaySinh.nam%400==0 || (TK.NgaySinh.nam%4==0 && TK.NgaySinh.nam%50==0))&& TK.NgaySinh.ngay<=28){
-            return 1;
-        }
-		else{
-            return 0;
-        }
-    }
-    else {
-        if(TK.NgaySinh.ngay<=30){
-            return 1;
-        }
-    }
-}
-//Ham tinh tuoi 
-void TinhTuoi(){
-    time_t TTIME=time(0);
-    tm* NOW=localtime(&TTIME);
-    TK.tuoi=NOW->tm_year+1900-TK.NgaySinh.nam;
-}
-//Ham ghi luot choi
-void GhiLuotChoi(){
-	system("cls");
-	GoTo(46,10);
-	DoiMau(0,9);
-    printf("-----TAO LUOT CHOI-----\n");
-	DoiMau(0,11);
-    FILE* file;
-    char tenFile[50];
-    strcpy(tenFile,TK.name);
-    strcat(tenFile,".txt");
-    file=fopen(tenFile,"a"); //strcat de noi ten thanh .txt
-    if(file==NULL){
-		GoTo(41,14);
-        printf("File khong mo duoc hoac bi loi !!!");
-        Sleep(1000);
-		DKy_DNhap();
-    }
-    printf("Ten nhan vat: ");
-    gets(GhiNV.username);
-    fprintf(file,"\n%s",GhiNV.username);
-    fclose(file);
-	Menu();
-}
-//Ham ghi thoi gian ki luc
-void GhiThoiGian(double KL){
-	FILE* file;
-    char tenFile[50];
-    strcpy(tenFile,TK.name);
-    strcat(tenFile,".txt");
-    file=fopen(tenFile,"a");
-	fprintf(file,"\n%f",KL);
-	fclose(file);
-}
-// Ham xem ky luc
-void xuatFileKiLuc(){
-	system("cls");
-    FILE* file;
-    char pass[50];
-    char tenFile[50];
-    strcpy(tenFile,TK.name);
-    strcat(tenFile,".txt");
-    file=fopen(tenFile,"r");
-    if(file==NULL){
-        printf("\nFile khong mo duoc hoac bi loi !!!");
-        exit(1);
-    }
-    fscanf(file,"%s",pass);
-    int n=-1;
-    do{
-        n++;
-        fscanf(file,"%30s",XuatNV[n].username);
-        fscanf(file,"%30s", XuatNV[n].rank);
-    }while(atof(XuatNV[n].rank)!=0);
-    n--;
-	system("cls");
-	GoTo(54,5);
-	DoiMau(0,9);
-    printf("KI LUC\n");
-	DoiMau(0,11);
-    for(int i=0; i<=n-1; i++){
-        int max=i;
-        for (int j=i+1; j<=n; j++){
-            if(atof(XuatNV[j].rank)<atof(XuatNV[max].rank))
-                max=j;
-        }
-        DoiCho(XuatNV[i], XuatNV[max]);
-    }
-    for(int i=0; i<=n; i++){
-        printf("%d\t\t%30s\t\t%.3f\n",i, XuatNV[i].username, atof(XuatNV[i].rank));
-    }
-	GoTo(1,27);
-	printf("ENTER: quay lai MENU");
-	char enter;
-	while(1){
-		enter=getch();
-		if(enter==13)
-    		fclose(file);
-			Menu();
-	}
-}
-//Ham doi cho
-void DoiCho(NhanVat &a, NhanVat &b){
-    // printf("\nhelo\n");
-    NhanVat temp;
-    strcpy(temp.rank,a.rank);
-    strcpy(temp.username,a.username);
-    strcpy(a.rank,b.rank);
-    strcpy(a.username,b.username);
-    strcpy(b.rank,temp.rank);
-    strcpy(b.username,temp.username);
-}
-
-
-//Ham menu (chưa sửa nội dung)
-void Menu(){
-    system("cls");
-    //Khoi tao bien chon phuong an va bien chon phuong an truoc đo
-    int  chon = 1, choncu = 0;
-    //Noi dung
-    DoiMau(0,9);
-    GoTo(45,12);
-    printf("%c %c %c %c THE RIVER %c %c %c %c",3,4,5,6,6,5,4,3);
-    GoTo(54,13);
-	DoiMau(0,11);
-    printf("BAT DAU");
-    GoTo(53,14);
-    printf("LUAT CHOI");
-    GoTo(54,15);
-    printf(" KY LUC");
-    GoTo(51,16);
-    printf("THONG TIN GAME ");
-    GoTo(1,27);
-    printf("ESC: thoat game!");
-	//Di chuyen con tro
-    while(1){
-    	DC_Chon_Menu(chon,choncu); //Hien vi tri con tro đe chon
-		char lenh;
-		if(kbhit()){ //Kiem tra bo đem ban phim
-			lenh=getch();
-			if(lenh==13)
-		 		break; //Dung vong lap (chon phuong an)
- 			if(lenh==80){
-				if(chon<4){
-					chon++;
-					choncu=chon-1;
-					DC_Chon_Menu(chon,choncu);
-				}
-			}
-			if(lenh==72){
-				if(chon>1){
-					chon--; 
-					choncu=chon+1;	
-					DC_Chon_Menu(chon,choncu);
-				}
-			}
-			if(lenh==27)	//Thoat game
-				return;
-		}
-	}
-    //Bat dau game
-    if(chon==1){
-		time(&GhiNV.t1);
-		Man_1();
-	}
-	//Luat choi
-	if(chon==2){
-		system("cls");
-		DoiMau(0,9);
-    	printf("\t\t\t\t\t------*LUAT CHOI------\n");
-	    printf("\n");
-		DoiMau(0,11);
-		printf("\t\t Di chuyen bang cac phim:\n\t\t a: sang trai\t\td: sang phai\t\ts: leo len thang\n\t\t w + a: nhay gan sang trai\n\t\t w + w + a: nhay xa sang trai\n\t\t w + d: nhay gan sang phai\n\t\t w + w + d:nhay xa sang phai\n");
-		printf("\n"); 
-		printf("\t\t Nhiem vu cua ban la vuot qua cac cam bay va co quan de thu thap\n");
-		printf("\t\t nhung chiec chia khoa that lac, va mo canh cua de qua mang ke tiep.\n");
-		printf("\t\t Ban co 3 mang. Moi lan cham vao cam bay (gai nhon), ban se mat 1 mang\n");
-		printf("\t\t HAY CAN THAN NHA!!!\n");
-		printf("\n");
-		printf("\t\t Thanh tich cua ban se duoc tinh bang thoi gian hoan thanh mang choi. Toc do\n");
-		printf("\t\t cang nhanh thu hang cang cao.\n\t\t Hay hoan thanh nhat co the va HAY CAN THAN CAM BAY!\n");
-		GoTo(1,27);
-		printf("\nENTER: quay lai MENU\n");
-		char enter;
-		while(1){
-			enter=getch();
-			if(enter==13)
-				Menu();
-		}
-	}
-	//Phan ky luc
-    if(chon==3){
-    	xuatFileKiLuc();
-    }
-	//Phan thong tin ve game
-    if(chon==4){
-		system("cls");
-		DoiMau(0,9);
-		printf("\t\t\t\t\t\t------*THONG TIN GAME*------\n");
-		printf("\n"); 
-		DoiMau(0,11);
-		printf("\t\t Ten game : The river\n");
-		printf("\n");
-		printf("\t\t Cot truyen game: Hai dua choi voi nhau tu nho den mot ngay mot dua bi hon me.Dua \n");
-		printf("\t\t mong manh kia mo thay ban no bi ket trong mot khoang khong gian toi tam.Kieu nhu ranh gioi\n"); 
-		printf("\t\t giua thien dang voi dia nguc va hanh trinh den noi do de dua ban ve bat dau\n");
-		printf("\n");
-		printf("\t\t Diem noi bat cua game: Game tao cho nguoi choi mot cam giac chua tung co game nao lam duoc\n");
-		printf("\t\t Khi nguoi choi di qua cac man ma khong doc ki huong dan truoc khi choi se gap rat nhieu kho\n");
-		printf("\t\t khan.Chung toi da co tinh tao ra ca buoc nhay mot cach co dinh khien cho nguoi choi di lai\n");
-		printf("\t\t nhieu lan nham tim ra quy luat cua tro choi de co the qua man mot cach de dang ben canh do\n");
-		printf("\t\t cac man cung se thay doi da dang khi nguoi choi co the qua man khien cho nguoi choi khong tro\n ");
-		printf("\t\t nen nham chan.") ;
-		// printf("\n");
-		GoTo(1,27);
-		printf("\nENTER: tiep theo\n");
-		char enterQT;
-		while(1){
-			enterQT=getch();
-			if(enterQT==13){
-				system("cls");
-				DoiMau(0,9);
-				printf("\t\t\t\t\t\t------*THONG TIN NHOM*------\n");
-				DoiMau(0,11);
-				printf("\t\t Nhom truong: Le Dinh Khoi\n");
-				printf("\t\t Mssv:\n");
-				printf("\t\t Mail:\n");
-				printf("\t\t Thanh vien : Do Van thanh Duoc\n");
-				printf("\t\t Mssv:\n");
-				printf("\t\t Mail:\n");
-				printf("\t\t Thanh vien : Tran Phuong Anh\n");
-				printf("\t\t Mssv:\n");
-				printf("\t\t Mail:\n");
-				printf("\t\t Thanh vien : Ngyen Van Dung\n");
-				printf("\t\t Mssv:\n");
-				printf("\t\t Mail:\n");
-				GoTo(1,27);
-				printf("\nENTER: quay lai MENU\n");
-				char enterQV;
-				while(1){
-					enterQV=getch();
-					if(enterQV==13)
-						Menu();
-				}
-			}
-		}
-	}
-}
-//Ham hien thi con tro tai phuong an chon
-void DC_Chon_Menu(int chon, int choncu){
-    //1=> 2->1
-    if(chon==1){
-		if(choncu==2){
-			GoTo(51,14);
-			DoiMau(0,11);
-    		printf("  LUAT CHOI");
-		}
-		GoTo(52,13);
-		DoiMau(0,9);
-		printf("%c BAT DAU",16);
-		DoiMau(0,11);
-	}
-    //2=> 1->2 hoặc 3->2
-	if(chon==2){
-		if(choncu==1){
-			GoTo(52,13);
-			DoiMau(0,11);
-    		printf("  BAT DAU");
-		}
-		if(choncu==3){
-			GoTo(52,15);
-			DoiMau(0,11);
-    		printf("   KY LUC");	
-		}
-		GoTo(51,14);
-		DoiMau(0,9);
-		printf("%c LUAT CHOI",16);
-		DoiMau(0,11);
-	}
-    //3=> 2->3 hoặc 4->3
-	if(chon==3){
-		if(choncu==2){
-			GoTo(51,14);
-			DoiMau(0,11);
-    		printf("  LUAT CHOI");	
-		}
-		if(choncu==4){
-			GoTo(49,16);
-			DoiMau(0,11);
-    		printf("  THONG TIN GAME ");	
-		}
-		GoTo(52,15);
-		DoiMau(0,9);
-		printf("%c  KY LUC",16);
-		DoiMau(0,11);
-	}
-    //4=> 3->4 
-	if(chon==4){
-		if(choncu==3){
-			GoTo(52,15);
-			DoiMau(0,11);
-    		printf("   KY LUC");	
-		}
-		GoTo(49,16);
-		DoiMau(0,9);
-		printf("%c THONG TIN GAME ",16);
-		DoiMau(0,11);
-	}
-}
-//Ham hien thi vat pham
-void HienThi(){
-	GoTo(0,31);
-	printf("HP: %c %c %c %c %c",3,3,3,3,3);
-	int j=12;
-	while(j>((HP+1)*2)){
-		GoTo(j,31);
-		printf(" ");
-		j-=2;
-	}
-	GoTo(20,31);
-	printf("Chia khoa: ");
-	for(int i=1; i<=DemCK; i++){
-		printf("%c ",42);
-	}
-}
-//Ham ket thuc
-void end(){
-	if(HP==0){
-		system("cls");
-		GhiThoiGian(10000);
-		GoTo(52,13);
-		printf("BAN DA THUA");
-		GoTo(56,14);
-		printf(":((");
-		GoTo(0,27);
-		printf("ESC: quay lai menu   ENTER: choi lai");
-		while(1){
-			char phim=getch();
-			if(phim==27){
-				Menu();
-			}
-			if(phim==13){
-				if(MChoi==1){
-					Man_1();
-				}
-				if(MChoi==2){
-					Man_2();
-				}
-				if(MChoi==3){
-					Man_3();
-				}
-			}
-		}	
-	}
-	if(CheckCua==true){
-		if(MChoi==3){
-			time(&GhiNV.t2);
-			Outro();
-			system("cls");
-			GoTo(50,13);
-			printf("XIN CHUC MUNG!!!");
-			GoTo(38,14);
-			printf("BAN DA HOAN THANH MAN CHOI VOI KI LUC: %.3f",difftime(GhiNV.t2,GhiNV.t1));
-			GoTo(0,27);
-			printf("ESC: quay lai menu");
-			GhiThoiGian(difftime(GhiNV.t2,GhiNV.t1));
-			while(1){
-				char phim=getch();
-				if(phim==27){
-					Menu();
-				}
-			}
-		}
-		system("cls");
-		GoTo(50,13);
-		printf("XIN CHUC MUNG!!!");
-		GoTo(44,14);
-		printf("BAN DA HOAN THANH MAN CHOI");
-		GoTo(0,27);
-		printf("ESC: quay lai menu   ENTER: man tiep theo");
-		while(1){
-			char phim=getch();
-			if(phim==27){
-				Menu();
-			}
-			if(phim==13){
-				if(MChoi==1){
-					Man_2();
-				}
-				if(MChoi==2){
-					Man_3();
-				}
-			}
-		}	
-	}
-}
-
-
-//Ham reset lai cac thong so
-void Reset(){
-	for(int i=0; i<=1610; i++){
-		Map[i].VT.x=0;
-		Map[i].VT.y=0;
-		Map[i].kt=0;
-	}
-	for(int i=0; i<=500; i++){
-		Gai[i].VT.x=0;
-		Gai[i].VT.y=0;
-		Gai[i].kt=0;
-	}
-	for(int i=0; i<=50; i++){
-		ThangL[i].VT.x=0;
-		ThangL[i].VT.y=0;
-		ThangL[i].kt=0;
-	}
-	for(int i=0; i<=50; i++){
-		CuaChan[i].VT.x=0;
-		CuaChan[i].VT.y=0;
-		CuaChan[i].kt=0;
-	}
-	for(int i=0; i<=10; i++){
-		CK[i].x=0; CK[i].y=0;
-		Cua[i].x=0; Cua[i].y=0;
-		GaiQL[i].x=0; GaiQL[i].y=0;
-		ThangLDen[i].x=0; ThangLDen[i].y=0;
-		ThangLDi[i].x=0; ThangLDi[i].y=0;
-		KhoiDat[i].x=0; KhoiDat[i].y=0;
-		CTac[i].x=0; CTac[i].y=0;
-	}
-	HP=5;	//Mau cua nhan vat
-	DM=0;	//Bien dem de ghi toa do dat
-	DemCK=0;	//Bien dem so luong chia khoa nhan vat dang co
-	DemGai=0;	//Bien dem so luong gai trong map
-	GQL=0;	//Bien chi dinhj vi tri qua lai khi trug gai
-	DemTL=0;	//Bien dem so luong bac thang co trong map
-	TDvaD=0;	//Bieen chi dinh vi tri den va di khi leo thang
-	DemKD=0;	//Bien dem so luong khoi dat trong map
-	hD=0;	//Huong di chuyen cua nhan vat  1:phai  -1:trai
-	hR=0;
-	DemCT=0;	//Bien dem so cong tac tren map
-	DemCC=0;	//Bien dem so luong cua chan cos tren map
-	CheckCua=false;	//Huong roi cua nhan vat
-}
-
-//Man chơi
-void Man_1(){
-	MChoi=1;
-	Reset();
-	Map_1(219);
-	NV(nv.x,nv.y);
-	DieuKhien(nv.x,nv.y);
-}
-void Man_2(){
-	MChoi=2;
-	Reset();
-	Map_2(219);
-	NV(nv.x,nv.y);
-	DieuKhien(nv.x,nv.y);
-}
-void Man_3(){
-	MChoi=3;
-	Reset();
-	Map_3(219);
-	NV(nv.x,nv.y);
-	DieuKhien(nv.x,nv.y);
 }
 
 //INTRO GAME (THE RIVER)
@@ -2295,7 +2418,7 @@ void Intro(){
 	}
 }
 void HChuT(){
-	DoiMau(0,9);
+	DoiMau(MauNenNoi, MauChuNoi);
 	char x=219; 
 	for (int i=25; i<=32; i++){
 		GoTo(i,11);
@@ -2356,7 +2479,7 @@ void HChuT(){
 	printf("%c", 200);
 }
 void HChuH(){
-	DoiMau(0,9);
+	DoiMau(MauNenNoi, MauChuNoi);
 	char x=219; 
 	for(int i=11; i<=15; i++){
 		GoTo(34,i);
@@ -2436,7 +2559,7 @@ void HChuH(){
 	printf("%c", 200);
 }
 void HChuE(){
-	DoiMau(0,9);
+	DoiMau(MauNenNoi, MauChuNoi);
 	char x=219;
 	for (int i=42; i<=48; i++){
 		GoTo(i,11);
@@ -2531,7 +2654,7 @@ void HChuE(){
 	printf("%c",200);
 }
 void HChuI(){
-	DoiMau(0,9);
+	DoiMau(MauNenNoi, MauChuNoi);
 	char x=219;
 	for (int i=11; i<=15; i++){
 		GoTo(62,i);
@@ -2569,7 +2692,7 @@ void HChuI(){
 	printf("%c",200);
 }
 void HChuR(){
-	DoiMau(0,9);
+	DoiMau(MauNenNoi, MauChuNoi);
 	char x=219;
 	for (int i=11; i<=15; i++){
 		GoTo(54,i);
@@ -2668,7 +2791,7 @@ void HChuR(){
 	printf("%c",200);
 }
 void HChuV(){
-	DoiMau(0,9);
+	DoiMau(MauNenNoi, MauChuNoi);
 	char x=219;
 	for (int i=11; i<=13; i++){
 		GoTo(65,i);
@@ -2758,7 +2881,7 @@ void HChuV(){
 	printf("%c",187);
 }
 void HChuE2(){
-	DoiMau(0,9);
+	DoiMau(MauNenNoi, MauChuNoi);
 	char x=219;
 	for (int i=74; i<=80; i++){
 		GoTo(i,11);
@@ -2853,7 +2976,7 @@ void HChuE2(){
 	printf("%c",200);
 }
 void HChuR2(){
-	DoiMau(0,9);
+	DoiMau(MauNenNoi, MauChuNoi);
 	char x=219;
 	for (int i=11; i<=15; i++){
 		GoTo(82,i);
@@ -2952,7 +3075,7 @@ void HChuR2(){
 	printf("%c",200);
 }
 void HIntro(){
-	DoiMau(0,9);
+	DoiMau(MauNenNoi, MauChuNoi);
 	char x=219; 
 	//chu T
 	for (int i=25; i<=32; i++){
@@ -3414,7 +3537,7 @@ void HIntro(){
 	//	Menu();
 }
 void AIntro(){
-	DoiMau(0,9);
+	DoiMau(MauNenNoi, MauChuNoi);
 	char x=219; 
 	//chu T
 	for (int i=25; i<=32; i++){
@@ -3868,17 +3991,17 @@ void AIntro(){
 	printf ("%s", "Nhan Enter de tiep tuc");
 }
 
-//OUTRO GAME
+//OUTRO GAME (THE END)
 void Outro(){
     Ket();
     HOutro();
-	Sleep(500);
+	Sleep(1000);
 }
 void Ket(){
     system("cls");
     int xC=9, yC=21;
     int x1=95,y1=21;
-    DoiMau(0,7);
+    DoiMau(MauNenNoi, MauChuNoi);
 	//Chan
 	GoTo(x1, y1);
 	printf("%c",19);
@@ -3886,7 +4009,7 @@ void Ket(){
 	GoTo(x1, y1-1);
 	printf("%c",64);
     //
-    DoiMau(0,11);
+    DoiMau(MauNenNhat, MauChuNhat);
     for(int i=20; i<=21; i++){
         for(int j=24; j<=26; j++){
             GoTo(j,i);
@@ -3899,7 +4022,7 @@ void Ket(){
             printf("%c",219);
         }
     }
-    DoiMau(0,9);
+    DoiMau(MauNenNoi, MauChuNoi);
     //
     NV(9,21);
     for(int j=10; j<=21; j++){
@@ -3986,7 +4109,7 @@ void Ket(){
     Sleep(20);
     XNV(xC,yC);
     Sleep(20);
-    NV(86,21);
+    NV(80,21);
     //
     xC=x1; yC=y1;
     while(y1>2){
@@ -3998,7 +4121,7 @@ void Ket(){
         GoTo(xC, yC-1);
         printf(" ");
         Sleep(20);
-        DoiMau(0,7);
+        DoiMau(MauNenNoi, MauChuNoi);
         //Chan
         GoTo(x1, y1);
         printf("%c",19);
@@ -4016,7 +4139,7 @@ void Ket(){
 	printf(" ");
 }
 void HOutro(){
-	DoiMau(0,9);
+	DoiMau(MauNenNoi, MauChuNoi);
 	char x=219; 
 	//chu T
 	for (int i=30; i<=37; i++){
@@ -4508,13 +4631,18 @@ void HOutro(){
     printf("%c",188);
 }
 
-
-//Noi chay chuong trinh (MAIN)
-int main(){
-	ShowCur(false);	//An con tro
-    Intro();
-	DoiMau(0,11);
-	DKy_DNhap();
-    system("cls");
-    return 0;
-}
+//Chu thich them
+/*Cac phim va ki tu
+97.a	100.d	115.s	119.w
+200.╚	201.╔	187.╗	186.║	188.╝	205.═  206.╬  64.@
+16.►   17.◄   29.↔   240.≡  30.▲   219.█  254.■
+Phim Enter : 13
+Phim ESC: 27
+Phim Tab: 9
+Mui ten len: 72
+Mui ten xuong: 80
+Mui ten sang trai: 75
+Mui ten sang phai: 77
+Phim cach: 32	
+*/
+// khung: 201,187,200,188,205,186
